@@ -1,85 +1,221 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Crypto Payment Gateway Demo</title>
+  <title>LittleCPay – Crypto Payment Gateway Demo</title>
   <style>
-    body { font-family: Arial; background: #f7f7f7; padding: 20px; }
-    .box { background: white; padding: 20px; border-radius: 8px; max-width: 600px; }
-    .status { font-weight: bold; margin-top: 10px; }
-    .log { background: #eee; padding: 10px; margin-top: 10px; height: 120px; overflow-y: auto; }
-    button { padding: 10px; margin-top: 10px; }
+    body { font-family: Arial; background:#f4f6f8; padding:20px; }
+    .box { background:#fff; padding:20px; border-radius:8px; margin-bottom:20px; }
+    h1,h2,h3 { margin-top:0; }
+    button,select,input { padding:8px; margin-top:6px; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th,td { border:1px solid #ccc; padding:6px; }
+    .log { background:#eee; padding:10px; height:120px; overflow:auto; font-size:13px; }
+    pre { background:#f0f0f0; padding:10px; font-size:13px; }
+    .status { font-weight:bold; }
+    .brand { color:#1a73e8; font-weight:bold; }
   </style>
 </head>
+
 <body>
 
+<!-- BRAND HEADER -->
 <div class="box">
-  <h2>Crypto Payment Gateway (Demo)</h2>
-
-  <label>Merchant ID</label><br>
-  <input value="merchant_001" disabled><br><br>
-
-  <label>Customer ID</label><br>
-  <input value="customer_123" disabled><br><br>
-
-  <label>Network</label><br>
-  <select id="network">
-    <option>TRC20</option>
-    <option>BEP20</option>
-  </select><br><br>
-
-  <button onclick="createDeposit()">Create Deposit</button>
-
-  <p><strong>Deposit Address:</strong> <span id="address">—</span></p>
-  <p><strong>Expires In:</strong> <span id="timer">—</span></p>
-
-  <p class="status">Status: <span id="status">Waiting</span></p>
-
-  <button onclick="simulatePayment()">Simulate Payment</button>
-
-  <h4>Webhook Events</h4>
-  <div class="log" id="log"></div>
+  <h1 class="brand">LittleCPay</h1>
+  <p>Crypto Payment Gateway Demo (TRC20 / BEP20)</p>
 </div>
 
+<!-- VIEW SWITCH -->
+<div class="box">
+  <label><strong>View Mode:</strong></label>
+  <select id="viewMode" onchange="switchView()">
+    <option value="customer">Customer Checkout</option>
+    <option value="merchant">Merchant Dashboard</option>
+    <option value="admin">LittleCPay Admin</option>
+  </select>
+</div>
+
+<!-- CUSTOMER VIEW -->
+<div id="customerView">
+  <div class="box">
+    <h2>Pay with Crypto via <span class="brand">LittleCPay</span></h2>
+
+    <label>Merchant</label><br>
+    <select id="merchantSelect">
+      <option value="Merchant A">Merchant A</option>
+      <option value="Merchant B">Merchant B</option>
+    </select><br><br>
+
+    <label>Customer</label><br>
+    <select id="customerSelect">
+      <option value="cust_001">Customer 1</option>
+      <option value="cust_002">Customer 2</option>
+    </select><br><br>
+
+    <label>Network</label><br>
+    <select id="network">
+      <option>TRC20</option>
+      <option>BEP20</option>
+    </select><br><br>
+
+    <label>Amount (USDT)</label><br>
+    <input id="amount" value="100"><br><br>
+
+    <button onclick="createDeposit()">Generate Deposit Address</button>
+
+    <p><strong>Deposit Address:</strong> <span id="address">—</span></p>
+    <p><strong>Expires In:</strong> <span id="timer">—</span></p>
+    <p class="status">Status: <span id="status">Waiting</span></p>
+
+    <button onclick="simulatePayment()">Simulate Payment</button>
+
+    <h4>LittleCPay System Events</h4>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+
+<!-- MERCHANT VIEW -->
+<div id="merchantView" style="display:none;">
+  <div class="box">
+    <h2>Merchant Dashboard — <span class="brand">LittleCPay</span></h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Merchant</th>
+          <th>Customer</th>
+          <th>Network</th>
+          <th>Amount</th>
+          <th>TxID</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="merchantTable"></tbody>
+    </table>
+
+    <h3>Webhook Payload (Sent by LittleCPay)</h3>
+    <pre id="webhookPayload">—</pre>
+  </div>
+</div>
+
+<!-- ADMIN VIEW -->
+<div id="adminView" style="display:none;">
+  <div class="box">
+    <h2>LittleCPay Platform Admin</h2>
+
+    <p><strong>Total Transactions:</strong> <span id="totalTx">0</span></p>
+    <p><strong>Total Volume (USDT):</strong> <span id="totalVolume">0</span></p>
+    <p><strong>LittleCPay Fee (1%):</strong> <span id="platformFee">0</span></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Merchant</th>
+          <th>Customer</th>
+          <th>Amount</th>
+          <th>Network</th>
+          <th>TxID</th>
+        </tr>
+      </thead>
+      <tbody id="adminTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- JAVASCRIPT -->
 <script>
-let countdown;
-let seconds = 900;
+let countdown, seconds = 900;
+let payments = [];
 
-function createDeposit() {
-  document.getElementById("address").innerText =
-    "0x" + Math.random().toString(16).substr(2, 40);
+function switchView(){
+  customerView.style.display = viewMode.value==="customer"?"block":"none";
+  merchantView.style.display = viewMode.value==="merchant"?"block":"none";
+  adminView.style.display    = viewMode.value==="admin"?"block":"none";
+}
 
-  document.getElementById("status").innerText = "Waiting for payment";
-  log("deposit.created");
+function createDeposit(){
+  address.innerText = "0x"+Math.random().toString(16).substr(2,40);
+  status.innerText = "Waiting for payment";
+  logEvent("LittleCPay: deposit.created");
 
   seconds = 900;
   clearInterval(countdown);
-  countdown = setInterval(() => {
+  countdown = setInterval(()=>{
     seconds--;
-    document.getElementById("timer").innerText =
-      Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0");
-
-    if (seconds <= 0) {
+    timer.innerText = Math.floor(seconds/60)+":"+(seconds%60).toString().padStart(2,"0");
+    if(seconds<=0){
       clearInterval(countdown);
-      document.getElementById("status").innerText = "Expired";
-      log("deposit.expired");
+      status.innerText="Expired";
+      logEvent("LittleCPay: deposit.expired");
     }
-  }, 1000);
+  },1000);
 }
 
-function simulatePayment() {
-  document.getElementById("status").innerText = "Payment detected";
-  log("deposit.detected");
+function simulatePayment(){
+  status.innerText="Payment detected";
+  logEvent("LittleCPay: deposit.detected");
 
-  setTimeout(() => {
-    document.getElementById("status").innerText = "Payment confirmed";
-    log("deposit.confirmed (webhook sent)");
-  }, 3000);
+  setTimeout(()=>{
+    const p = {
+      gateway: "LittleCPay",
+      merchant: merchantSelect.value,
+      customer: customerSelect.value,
+      network: network.value,
+      amount: Number(amount.value),
+      txid: "0x"+Math.random().toString(16).substr(2,10),
+      status: "Confirmed"
+    };
+
+    payments.push(p);
+    addMerchantRow(p);
+    addAdminRow(p);
+    updateAdminStats();
+
+    status.innerText="Payment confirmed";
+    logEvent("LittleCPay: deposit.confirmed (webhook sent)");
+
+    webhookPayload.innerText = JSON.stringify({
+      gateway: "LittleCPay",
+      event:"deposit.confirmed",
+      confirmations:1,
+      ...p
+    },null,2);
+
+  },3000);
 }
 
-function log(msg) {
-  const el = document.getElementById("log");
-  el.innerHTML += msg + "<br>";
-  el.scrollTop = el.scrollHeight;
+function addMerchantRow(p){
+  merchantTable.innerHTML += `
+    <tr>
+      <td>${p.merchant}</td>
+      <td>${p.customer}</td>
+      <td>${p.network}</td>
+      <td>${p.amount}</td>
+      <td>${p.txid}</td>
+      <td>${p.status}</td>
+    </tr>`;
+}
+
+function addAdminRow(p){
+  adminTable.innerHTML += `
+    <tr>
+      <td>${p.merchant}</td>
+      <td>${p.customer}</td>
+      <td>${p.amount}</td>
+      <td>${p.network}</td>
+      <td>${p.txid}</td>
+    </tr>`;
+}
+
+function updateAdminStats(){
+  totalTx.innerText = payments.length;
+  const volume = payments.reduce((a,b)=>a+b.amount,0);
+  totalVolume.innerText = volume;
+  platformFee.innerText = (volume*0.01).toFixed(2);
+}
+
+function logEvent(msg){
+  log.innerHTML += msg+"<br>";
+  log.scrollTop = log.scrollHeight;
 }
 </script>
 
