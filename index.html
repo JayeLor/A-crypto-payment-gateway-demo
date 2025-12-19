@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Crypto Payment Gateway Demo</title>
+  <style>
+    body { font-family: Arial; background: #f7f7f7; padding: 20px; }
+    .box { background: white; padding: 20px; border-radius: 8px; max-width: 600px; }
+    .status { font-weight: bold; margin-top: 10px; }
+    .log { background: #eee; padding: 10px; margin-top: 10px; height: 120px; overflow-y: auto; }
+    button { padding: 10px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h2>Crypto Payment Gateway (Demo)</h2>
+
+  <label>Merchant ID</label><br>
+  <input value="merchant_001" disabled><br><br>
+
+  <label>Customer ID</label><br>
+  <input value="customer_123" disabled><br><br>
+
+  <label>Network</label><br>
+  <select id="network">
+    <option>TRC20</option>
+    <option>BEP20</option>
+  </select><br><br>
+
+  <button onclick="createDeposit()">Create Deposit</button>
+
+  <p><strong>Deposit Address:</strong> <span id="address">—</span></p>
+  <p><strong>Expires In:</strong> <span id="timer">—</span></p>
+
+  <p class="status">Status: <span id="status">Waiting</span></p>
+
+  <button onclick="simulatePayment()">Simulate Payment</button>
+
+  <h4>Webhook Events</h4>
+  <div class="log" id="log"></div>
+</div>
+
+<script>
+let countdown;
+let seconds = 900;
+
+function createDeposit() {
+  document.getElementById("address").innerText =
+    "0x" + Math.random().toString(16).substr(2, 40);
+
+  document.getElementById("status").innerText = "Waiting for payment";
+  log("deposit.created");
+
+  seconds = 900;
+  clearInterval(countdown);
+  countdown = setInterval(() => {
+    seconds--;
+    document.getElementById("timer").innerText =
+      Math.floor(seconds / 60) + ":" + (seconds % 60).toString().padStart(2, "0");
+
+    if (seconds <= 0) {
+      clearInterval(countdown);
+      document.getElementById("status").innerText = "Expired";
+      log("deposit.expired");
+    }
+  }, 1000);
+}
+
+function simulatePayment() {
+  document.getElementById("status").innerText = "Payment detected";
+  log("deposit.detected");
+
+  setTimeout(() => {
+    document.getElementById("status").innerText = "Payment confirmed";
+    log("deposit.confirmed (webhook sent)");
+  }, 3000);
+}
+
+function log(msg) {
+  const el = document.getElementById("log");
+  el.innerHTML += msg + "<br>";
+  el.scrollTop = el.scrollHeight;
+}
+</script>
+
+</body>
+</html>
