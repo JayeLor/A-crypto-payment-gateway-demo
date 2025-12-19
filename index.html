@@ -1,191 +1,311 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>LittleCPay – Platform Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<title>LittleCPay — Non-Custodial Crypto Payment Gateway</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-    }
-
-    h1 {
-      color: #38bdf8;
-      margin-bottom: 5px;
-    }
-
-    p {
-      color: #94a3b8;
-      font-size: 14px;
-    }
-
-    .card {
-      background: #0f172a;
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.4);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #1e293b;
-      font-size: 14px;
-      text-align: left;
-    }
-
-    th {
-      color: #38bdf8;
-    }
-
-    .confirmed {
-      color: #22c55e;
-      font-weight: bold;
-    }
-
-    .waiting {
-      color: #facc15;
-      font-weight: bold;
-    }
-
-    pre {
-      background: #020617;
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 13px;
-      overflow-x: auto;
-      margin-top: 10px;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 12px;
-      color: #64748b;
-    }
-  </style>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background:#020617;
+  color:#e5e7eb;
+  padding:20px;
+}
+.container { max-width:1200px; margin:auto; }
+.card {
+  background:#0f172a;
+  padding:24px;
+  border-radius:14px;
+  margin-bottom:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);
+}
+.brand { color:#38bdf8; font-weight:bold; }
+p { color:#94a3b8; font-size:14px; }
+input, select, button {
+  padding:10px;
+  margin-top:6px;
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #1e293b;
+  border-radius:8px;
+  width:100%;
+}
+button {
+  background:#38bdf8;
+  color:#020617;
+  font-weight:bold;
+  cursor:pointer;
+}
+.grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+}
+th,td {
+  padding:12px;
+  border-bottom:1px solid #1e293b;
+  font-size:14px;
+}
+th { color:#38bdf8; }
+.waiting { color:#facc15; font-weight:bold; }
+.confirmed { color:#22c55e; font-weight:bold; }
+pre {
+  background:#020617;
+  padding:16px;
+  border-radius:10px;
+  font-size:13px;
+  overflow:auto;
+}
+.log {
+  background:#020617;
+  height:120px;
+  overflow:auto;
+  padding:12px;
+  font-size:13px;
+}
+.badge {
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#022c22;
+  color:#22c55e;
+  font-size:12px;
+}
+.footer {
+  text-align:center;
+  font-size:12px;
+  color:#64748b;
+}
+</style>
 </head>
 
 <body>
 <div class="container">
 
-  <h1>LittleCPay</h1>
-  <p>Platform Dashboard • All Merchants • All Deposits</p>
+<!-- ================= LANDING PAGE ================= -->
+<div class="card">
+  <h1 class="brand">LittleCPay</h1>
+  <p><strong>Non-Custodial • Deposit-Only Crypto Payment Gateway</strong></p>
 
-  <!-- DEPOSITS TABLE -->
-  <div class="card">
-    <h3>Live Deposits</h3>
+  <div class="grid">
+    <div>
+      <h3>What it does</h3>
+      <p>
+        LittleCPay generates unique deposit addresses, monitors blockchains,
+        and notifies merchants when payments are confirmed.
+      </p>
+      <span class="badge">No custody • No withdrawals • No balances</span>
+    </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Merchant</th>
-          <th>Deposit ID</th>
-          <th>Asset</th>
-          <th>Network</th>
-          <th>Amount</th>
-          <th>TxID</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+    <div>
+      <h3>How funds move</h3>
+      <p>
+        Customer → <strong>Merchant Wallet</strong><br>
+        LittleCPay never holds funds or private keys.
+      </p>
+    </div>
+
+    <div>
+      <h3>Supported</h3>
+      <p>USDT • TRC20 • BEP20</p>
+    </div>
   </div>
+</div>
 
-  <!-- WEBHOOK VIEW -->
-  <div class="card">
-    <h3>Latest Webhook Payload</h3>
-    <p>This represents what LittleCPay sends to merchant backends.</p>
-    <pre id="webhook">Waiting for event…</pre>
-  </div>
+<!-- ================= MERCHANT ONBOARDING ================= -->
+<div class="card">
+  <h2>Merchant API Access</h2>
 
-  <div class="footer">
-    © LittleCPay — Crypto Payment Infrastructure
+  <p>Use <strong>TEST</strong> keys for development. LIVE keys go to production.</p>
+
+  <div class="grid">
+    <div>
+      <label>Test API Key</label>
+      <input readonly value="test_pk_lcp_82ks91jd">
+    </div>
+    <div>
+      <label>Live API Key</label>
+      <input readonly value="live_pk_lcp_29dks82a">
+    </div>
+    <div>
+      <label>Webhook Secret</label>
+      <input readonly value="whsec_merchant_demo">
+    </div>
   </div>
+</div>
+
+<!-- ================= CREATE DEPOSIT ================= -->
+<div class="card">
+  <h2>Create Deposit (API Simulation)</h2>
+
+  <label>API Key</label>
+  <input id="apiKey" value="test_pk_lcp_82ks91jd"><br><br>
+
+  <label>Merchant Wallet (receives funds)</label>
+  <input id="wallet" value="TQxMerchantWalletAddress123"><br><br>
+
+  <label>Network</label>
+  <select id="network">
+    <option>TRC20</option>
+    <option>BEP20</option>
+  </select><br><br>
+
+  <label>Amount (USDT)</label>
+  <input id="amount" value="100"><br><br>
+
+  <button onclick="createDeposit()">POST /v1/deposits</button>
+
+  <p><strong>Deposit Address:</strong> <span id="address">—</span></p>
+  <p>Status: <span id="status" class="waiting">waiting</span></p>
+
+  <button onclick="simulatePayment()">Simulate Blockchain Payment</button>
+
+  <h4>Gateway Events</h4>
+  <div class="log" id="log"></div>
+</div>
+
+<!-- ================= MERCHANT DASHBOARD ================= -->
+<div class="card">
+  <h2>Merchant Dashboard</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Deposit ID</th>
+        <th>Network</th>
+        <th>Amount</th>
+        <th>TxID</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <h3>Webhook Payload</h3>
+  <pre id="webhook">Waiting for event…</pre>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+  © LittleCPay — Non-Custodial Payment Infrastructure
+</div>
 
 </div>
 
 <script>
-const SECRET = "merchant_secret_123";
+/* ---------------- CONFIG ---------------- */
+const STORAGE = "littlecpay_demo_deposits";
+const VALID_KEYS = ["test_pk_lcp_82ks91jd", "live_pk_lcp_29dks82a"];
+const WEBHOOK_SECRET = "whsec_merchant_demo";
 
-/* demo-safe signature */
-function sign(payload, secret) {
-  return btoa(payload + secret);
+/* ---------------- HELPERS ---------------- */
+function uid() {
+  return "dep_" + Math.random().toString(36).slice(2,10);
+}
+function sign(payload) {
+  return btoa(payload + WEBHOOK_SECRET);
+}
+function load() {
+  return JSON.parse(localStorage.getItem(STORAGE) || "[]");
+}
+function save(d) {
+  localStorage.setItem(STORAGE, JSON.stringify(d));
+}
+function log(msg) {
+  logBox.innerHTML += "LittleCPay: " + msg + "<br>";
+  logBox.scrollTop = logBox.scrollHeight;
 }
 
-function loadDeposits() {
-  const deposits = JSON.parse(localStorage.getItem("littlecpay_deposits")) || [];
-  const rows = document.getElementById("rows");
-
-  rows.innerHTML = "";
-
-  if (deposits.length === 0) {
-    rows.innerHTML = "<tr><td colspan='7'>No deposits yet</td></tr>";
+/* ---------------- API SIM ---------------- */
+function createDeposit() {
+  if (!VALID_KEYS.includes(apiKey.value)) {
+    alert("Invalid API Key");
     return;
   }
 
-  const latest = deposits[deposits.length - 1];
+  const deposits = load();
 
-  deposits.slice().reverse().forEach(d => {
-    rows.innerHTML += `
-      <tr>
-        <td>${d.merchant}</td>
-        <td>${d.deposit_id}</td>
-        <td>${d.asset}</td>
-        <td>${d.network}</td>
-        <td>${d.amount} USDT</td>
-        <td>${d.txid || "—"}</td>
-        <td class="${d.status === "confirmed" ? "confirmed" : "waiting"}">
-          ${d.status}
-        </td>
-      </tr>
-    `;
-  });
+  const d = {
+    deposit_id: uid(),
+    network: network.value,
+    amount: Number(amount.value),
+    address: "0x" + Math.random().toString(16).slice(2,42),
+    status: "waiting",
+    txid: null
+  };
 
-  /* simulate webhook */
-  if (latest.status === "confirmed") {
-    const payload = {
-      gateway: "LittleCPay",
-      event: "deposit.confirmed",
-      merchant_id: latest.merchant_id,
-      merchant: latest.merchant,
-      deposit_id: latest.deposit_id,
-      asset: latest.asset,
-      network: latest.network,
-      amount: latest.amount,
-      txid: latest.txid,
-      confirmations: latest.confirmations,
-      timestamp: new Date().toISOString()
-    };
+  deposits.push(d);
+  save(deposits);
 
-    document.getElementById("webhook").innerText =
-      JSON.stringify({
-        headers: {
-          "X-LittleCPay-Signature": sign(JSON.stringify(payload), SECRET)
-        },
-        body: payload
-      }, null, 2);
-  }
+  address.innerText = d.address;
+  status.innerText = "waiting";
+
+  log("deposit.created");
+  render();
 }
 
-/* auto refresh */
-loadDeposits();
-setInterval(loadDeposits, 3000);
+function simulatePayment() {
+  const deposits = load();
+  const d = deposits[deposits.length - 1];
+  if (!d) return;
+
+  log("blockchain.tx.detected");
+
+  setTimeout(() => {
+    d.status = "confirmed";
+    d.txid = "0x" + Math.random().toString(16).slice(2,12);
+    save(deposits);
+
+    status.innerText = "confirmed";
+    log("deposit.confirmed");
+    renderWebhook(d);
+    render();
+  }, 2500);
+}
+
+/* ---------------- RENDER ---------------- */
+function render() {
+  const deposits = load();
+  rows.innerHTML = "";
+
+  deposits.forEach(d => {
+    rows.innerHTML += `
+      <tr>
+        <td>${d.deposit_id}</td>
+        <td>${d.network}</td>
+        <td>${d.amount}</td>
+        <td>${d.txid || "—"}</td>
+        <td class="${d.status}">${d.status}</td>
+      </tr>`;
+  });
+}
+
+function renderWebhook(d) {
+  const payload = {
+    event: "deposit.confirmed",
+    deposit_id: d.deposit_id,
+    network: d.network,
+    amount: d.amount,
+    txid: d.txid,
+    timestamp: new Date().toISOString()
+  };
+
+  webhook.innerText = JSON.stringify({
+    headers: {
+      "X-LittleCPay-Signature": sign(JSON.stringify(payload))
+    },
+    body: payload
+  }, null, 2);
+}
+
+const logBox = document.getElementById("log");
+render();
 </script>
 
 </body>
